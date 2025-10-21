@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brick Breaker Game</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: Arial, sans-serif;
+        }
+        #gameContainer {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        canvas {
+            border: 3px solid #333;
+            display: block;
+            background: #f0f0f0;
+        }
+        #scoreBoard {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        #message {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 16px;
+            height: 25px;
+            color: #764ba2;
+            font-weight: bold;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="scoreBoard">
+            <div>Score: <span id="score">0</span></div>
+            <div>Lives: <span id="lives">3</span></div>
+        </div>
+        <canvas id="gameBoard" width="800" height="600"></canvas>
+        <div id="message"></div>
+        <div style="text-align: center;">
+            <button id="restartBtn" style="display: none;">Restart Game</button>
+        </div>
+    </div>
+
+    <script>
+        // STEP 1: Setup canvas and game variables
+        let canvas = document.querySelector("#gameBoard");
+        let ctx = canvas.getContext("2d");
+        let gameWidth = canvas.width;
+        let gameHeight = canvas.height;
+
+        // STEP 2: Ball configuration
+        let ballRadius = 12.5;
+        let ballX = gameWidth / 2;
+        let ballY = gameHeight / 2;
+        let ballSpeed = 3;
+        let ballXDirection = 0;
+        let ballYDirection = 0;
+        let ballColor = "yellow";
+
+        // STEP 3: Paddle configuration
+        let paddle = {
+            width: 100,
+            height: 15,
+            x: gameWidth / 2 - 50,
+            y: gameHeight - 40,
+            speed: 50
+        };
+
+        // STEP 4: Brick configuration
+        let brickConfig = {
+            rows: 5,
+            cols: 8,
+            width: 100,
+            height: 30,
+        };
+
+        // STEP 5: Game state
+        let bricks = [];
+        let score = 0;
+        let lives = 3;
+        let gameRunning = false;
+        let intervalID;
+
+        // STEP 6: Create the brick array
+        function createBricks() {
+            bricks = [];
+            for (let row = 0; row < brickConfig.rows; row++) {
+                for (let col = 0; col < brickConfig.cols; col++) {
+                    bricks.push({
+                        x: col * (brickConfig.width),
+                        y: row * (brickConfig.height),
+                        width: brickConfig.width,
+                        height: brickConfig.height,
+                        visible: true,
+                        color: getRowColor(row)
+                    });
+                }
+            }
+        }
+
+        // STEP 7: Assign colors based on row
+        function getRowColor(row) {
+            const colors = ["#e74c3c", "#e67e22", "#f39c12", "#2ecc71", "#3498db"];
+            return colors[row % colors.length];
+        }
+
+        // STEP 8: Initialize game
+        function gameStart() {
+            createBricks();
+            createBall();
+            score = 0;
+            lives = 3;
+            updateUI();
+            gameRunning = true;
+            nextTick();
+        }
+
+        // STEP 9: Main game loop
+        function nextTick() {
+            if (!gameRunning) return;
+            
+            intervalID = setTimeout(() => {
+                clearBoard();
+                drawBricks();
+                drawPaddle();
+                moveBall();
+                drawBall(ballX, ballY);
+                checkCollision();
+                nextTick();
+            }, 16); // ~60 FPS
+        }
+
+        // STEP 10: Clear the canvas
+        function clearBoard() {
+            ctx.fillStyle = "#f0f0f0";
+            ctx.fillRect(0, 0, gameWidth, gameHeight);
+        }
+
+        // STEP 11: Draw the paddle
+        function drawPaddle() {
+            ctx.fillStyle = "#e74c3c";
+            ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+            
+            // Add a highlight
+            ctx.fillStyle = "rgba(255,255,255,0.3)";
+            ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height / 2);
+        }
+
+        // STEP 12: Draw all bricks
+        function drawBricks() {
+            bricks.forEach(brick => {
+                if (brick.visible) {
+                    // Draw brick
+                    ctx.fillStyle = brick.color;
+                    ctx.fillRect(brick.x, brick.y, brick.width, brick.height);
+                    
+                    // Draw border
+                    ctx.strokeStyle = "rgba(0,0,0,0.2)";
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(brick.x, brick.y, brick.width, brick.height);
+                    
+                    // Draw highlight
+                    ctx.fillStyle = "rgba(255,255,255,0.3)";
+                    ctx.fillRect(brick.x, brick.y, brick.width, brick.height / 3);
+                }
+            });
+        }
+
+        // STEP 13: Draw the ball
+        function drawBall(x, y) {
+            ctx.fillStyle = ballColor;
+            ctx.beginPath();
+            ctx.arc(x, y, ballRadius, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Add shine effect
+            ctx.fillStyle = "rgba(255,255,255,0.6)";
+            ctx.beginPath();
+            ctx.arc(x - 4, y - 4, ballRadius / 3, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        // STEP 14: Initialize ball direction
+        function createBall() {
+            ballSpeed = 3;
+            ballXDirection = Math.random() > 0.5 ? 1 : -1;
+            ballYDirection = -1; // Always start going up
+            ballX = gameWidth / 2;
+            ballY = gameHeight - 100;
+        }
+
+        // STEP 15: Move the ball
+        function moveBall() {
+            ballX += ballSpeed * ballXDirection;
+            ballY += ballSpeed * ballYDirection;
+        }
+
+        // STEP 16: Check all collisions
+        function checkCollision() {
+            // Wall collisions
+            if (ballY <= ballRadius) {
+                ballYDirection *= -1;
+                ballY = ballRadius;
+            }
+            if (ballX <= ballRadius) {
+                ballXDirection *= -1;
+                ballX = ballRadius;
+            }
+            if (ballX >= gameWidth - ballRadius) {
+                ballXDirection *= -1;
+                ballX = gameWidth - ballRadius;
+            }
+
+            // Bottom boundary - lose a life
+            if (ballY >= gameHeight - ballRadius) {
+                lives--;
+                updateUI();
+                
+                if (lives <= 0) {
+                    gameOver(false);
+                } else {
+                    showMessage("Life lost! Lives remaining: " + lives);
+                    resetBall();
+                }
+                return;
+            }
+
+            // Paddle collision - only from above
+            if (ballYDirection > 0) { // Ball moving downward
+                if (ballY + ballRadius >= paddle.y && 
+                    ballY + ballRadius <= paddle.y + paddle.height) {
+                    if (ballX >= paddle.x && ballX <= paddle.x + paddle.width) {
+                        // Reverse Y direction
+                        ballYDirection = -1;
+                        
+                        // Add angle based on where ball hits paddle
+                        let hitPos = (ballX - paddle.x) / paddle.width;
+                        ballXDirection = (hitPos - 0.5) * 2;
+                        
+                        // Keep ball above paddle
+                        ballY = paddle.y - ballRadius;
+                    }
+                }
+            }
+            // Brick collision
+            bricks.forEach(brick => {
+                if (!brick.visible) return;
+
+                if (ballX + ballRadius >= brick.x &&
+                    ballX - ballRadius <= brick.x + brick.width &&
+                    ballY + ballRadius >= brick.y &&
+                    ballY - ballRadius <= brick.y + brick.height) {
+                    
+                    brick.visible = false;
+                    score += 10;
+                    updateUI();
+
+                    // Determine collision side
+                    let fromLeft = ballX < brick.x;
+                    let fromRight = ballX > brick.x + brick.width;
+                    let fromTop = ballY < brick.y;
+                    let fromBottom = ballY > brick.y + brick.height;
+
+                    if (fromLeft || fromRight) {
+                        ballXDirection *= -1;
+                    } else {
+                        ballYDirection *= -1;
+                    }
+
+                    // Check win condition
+                    if (bricks.every(b => !b.visible)) {
+                        gameOver(true);
+                    }
+                }
+            });
+        }
+
+        // STEP 17: Reset ball after losing a life
+        function resetBall() {
+            gameRunning = false;
+            clearTimeout(intervalID);
+            
+            setTimeout(() => {
+                createBall();
+                gameRunning = true;
+                nextTick();
+            }, 1000);
+        }
+
+        // STEP 18: Handle game over
+        function gameOver(won) {
+            gameRunning = false;
+            clearTimeout(intervalID);
+            
+            if (won) {
+                showMessage("🎉 YOU WIN! Final Score: " + score);
+            } else {
+                showMessage("💥 GAME OVER! Final Score: " + score);
+            }
+            
+            document.getElementById("restartBtn").style.display = "block";
+        }
+
+        // STEP 19: Update UI elements
+        function updateUI() {
+            document.getElementById("score").textContent = score;
+            document.getElementById("lives").textContent = lives;
+        }
+
+        function showMessage(msg) {
+            document.getElementById("message").textContent = msg;
+            setTimeout(() => {
+                document.getElementById("message").textContent = "";
+            }, 2000);
+        }
+
+        // STEP 20: Keyboard controls
+        window.addEventListener("keydown", movePaddle);
+
+        function movePaddle(event) {
+            if (!gameRunning) return;
+            
+            let keyPressed = event.keyCode;
+            
+            if (keyPressed === 37) { // Left arrow
+                paddle.x -= paddle.speed;
+            } else if (keyPressed === 39) { // Right arrow
+                paddle.x += paddle.speed;
+            }
+
+            // Keep paddle in bounds
+            if (paddle.x < 0) paddle.x = 0;
+            if (paddle.x + paddle.width > gameWidth) {
+                paddle.x = gameWidth - paddle.width;
+            }
+        }
+
+        // Restart button
+        document.getElementById("restartBtn").addEventListener("click", () => {
+            document.getElementById("restartBtn").style.display = "none";
+            document.getElementById("message").textContent = "";
+            gameStart();
+        });
+
+        // STEP 21: Start the game!
+        gameStart();
+    </script>
+</body>
+</html>

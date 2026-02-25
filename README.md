@@ -1,6 +1,22 @@
 # JavaScript Basics & DOM Manipulation Practice
 
+![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black)
+![Canvas API](https://img.shields.io/badge/Canvas%20API-FF6B35?style=flat-square&logo=html5&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
+
 Welcome to my JavaScript fundamentals practice repository! This collection focuses on strengthening core JavaScript concepts and DOM manipulation skills through building classic arcade games. Each project is designed to reinforce essential programming foundations while creating engaging, interactive experiences.
+
+## ⭐ Key Highlights
+
+- 🎮 **5 Playable Classic Games** — BreakOut, DinoSar, Pong, Snake & Tic Tac Toe, each built from scratch
+- 🚫 **Zero External Dependencies** — Pure HTML5, CSS3 & Vanilla JavaScript, no libraries or frameworks
+- 🖼️ **HTML5 Canvas API** — 4 of 5 games use Canvas for graphics, animation & physics
+- 📈 **Progressive Learning Curve** — difficulty and concept complexity increases across games
+- 🏗️ **OOP & Procedural Patterns** — Pong showcases ES6 class-based OOP; others use procedural style
+- 📚 **In-Depth Documentation** — every game has its own detailed README with code examples
+- 🎯 **Concept-Driven Design** — each game mechanic is directly tied to a core JavaScript learning outcome
 
 ## 🎮 Game Collection
 
@@ -46,6 +62,23 @@ This repository is specifically designed to strengthen **JavaScript fundamentals
 - **User Input Processing** - Handling clicks, keyboard presses, form data
 - **Dynamic Content Updates** - Real-time score updates, game state changes
 - **Event-Driven Programming** - Building responsive, interactive applications
+
+## 🔑 Skills at a Glance
+
+| Skill | Games That Teach It |
+|-------|---------------------|
+| Canvas API & 2D Drawing | BreakOut, DinoSar, Pong, Snake |
+| Game Loop & Animation | BreakOut, DinoSar, Pong, Snake |
+| Collision Detection | BreakOut, DinoSar, Pong, Snake |
+| Physics Simulation (gravity, velocity) | BreakOut, DinoSar, Pong |
+| Object-Oriented Programming (ES6 Classes) | Pong |
+| DOM Manipulation & Element Selection | Tic Tac Toe |
+| Event Handling (keyboard & mouse) | All 5 Games |
+| Array Manipulation (`unshift`, `pop`, `forEach`) | Snake, Tic Tac Toe |
+| State Management | All 5 Games |
+| Grid-Based Logic | Snake, Tic Tac Toe |
+| Multiplayer Game Design | Pong |
+| Random Generation & Boundary Constraints | Snake |
 
 ## 🛠️ Technical Stack
 
